@@ -48,15 +48,19 @@ if (strpos($value, 'https://') !== false || strpos($value, 'http://') !== false)
         $value = $output['ll'];
     }
 }
-//For compatibility with older version which not use the Value property, set the Value if needed
-foreach ($cmd->getEqLogic()->getCmd('info') as $distance) {
-    if ($distance->getConfiguration('mode') == 'distance' || $distance->getConfiguration('mode') == 'travelDistance' || $distance->getConfiguration('mode') == 'travelTime') {
-        if ($distance->setDependency()) {
-            $distance->save();
-        }
+$cmd->event($value);
+foreach (cmd::byEqLogicId($cmd->getEqLogic_id()) as $cmd_other) {
+    if ($cmd_other->getConfiguration('mode') == 'distance') {
+        log::add('geoloc','debug','api distance sur '.$cmd_other->getName());
+        $cmd_other->event($cmd_other->execute());
+    } else if($cmd_other->getConfiguration('mode') == 'travelTime' ){
+        log::add('geoloc','debug','api travelTime sur '.$cmd_other->getName());
+        $cmd_other->event($cmd_other->execute());
+    } else if($cmd_other->getConfiguration('mode') == 'travelDistance' ){
+        log::add('geoloc','debug','api travelDistance  sur '.$cmd_other->getName());
+        $cmd_other->event($cmd_other->execute());
     }
 }
-$cmd->event($value);
 $cmd->getEqLogic()->refreshWidget();
 
 return true;
